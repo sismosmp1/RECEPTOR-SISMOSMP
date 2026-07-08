@@ -40,7 +40,7 @@ body { background: #050b14; color: white; height: 100vh; overflow: hidden; displ
 .alerta { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 999999; text-align: center; padding: 25px; }
 .alerta.active { display: flex; }
 
-/* ANIMACIÓN DE PANTALLA COMPLETA INTERMITENTE (NUEVO) */
+/* ANIMACIÓN DE PANTALLA COMPLETA INTERMITENTE */
 .alerta.tipo-fuerte { animation: flashFuerte 0.6s infinite; }
 @keyframes flashFuerte {
     0% { background: #d50000; }
@@ -58,7 +58,7 @@ body { background: #050b14; color: white; height: 100vh; overflow: hidden; displ
 .alerta h1 { font-size: 60px; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
 .alerta p { font-size: 28px; max-width: 700px; line-height: 1.7; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
 
-/* CONTENEDOR HORA DE ACTIVACIÓN (NUEVO) */
+/* CONTENEDOR HORA DE ACTIVACIÓN */
 .fecha-activa { margin-top: 25px; font-size: 22px; background: rgba(0, 0, 0, 0.6); padding: 12px 24px; border-radius: 12px; font-weight: bold; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.2); }
 
 .btnCerrar { margin-top: 35px; padding: 18px 34px; border: none; border-radius: 20px; background: white; color: #111; font-size: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
@@ -73,12 +73,14 @@ body { background: #050b14; color: white; height: 100vh; overflow: hidden; displ
 </head>
 <body>
 
+<!-- PANTALLA DE INICIO -->
 <div id="start-overlay">
     <h2 style="margin-bottom: 20px; font-size: 2rem;">SISMOS MP</h2>
     <p style="margin-bottom: 30px; opacity: 0.8;">Receptor de Alertas</p>
     <button class="btn-iniciar" onclick="iniciarSistema()">INICIAR RECEPTOR</button>
 </div>
 
+<!-- STATUS -->
 <div class="status">
     <div class="status-left">
         <div class="wifi">📶</div>
@@ -91,10 +93,12 @@ body { background: #050b14; color: white; height: 100vh; overflow: hidden; displ
     <div>SISMOS MP</div>
 </div>
 
+<!-- RELOJ -->
 <div class="reloj" id="reloj">00:00:00</div>
 <div class="fecha" id="fecha">Cargando fecha...</div>
 <div class="info">SISMOS MP APP PAGINA RECEPTORA DE ALERTA SISMICA</div>
 
+<!-- ALERTA FUERTE / EMERGENCIA -->
 <div class="alerta" id="alerta">
     <h1 id="tituloAlerta">🚨 ALERTA SÍSMICA</h1>
     <p id="mensajeAlerta">Sismo detectado</p>
@@ -102,19 +106,23 @@ body { background: #050b14; color: white; height: 100vh; overflow: hidden; displ
     <button class="btnCerrar" onclick="detenerTodo()">CERRAR ALERTA</button>
 </div>
 
+<!-- ALERTA DÉBIL -->
 <div class="toast" id="toast">
     <h3 id="tituloToast">🟡 Movimiento detectado</h3>
     <p id="mensajeToast">Información del evento</p>
 </div>
 
+<!-- AUDIOS -->
 <audio id="audioFuerte" preload="auto" loop><source src="https://raw.githubusercontent.com/sismosmp1/sismosmp-audio1/main/sirena_1min.mp3" type="audio/mpeg"></audio>
 
+<!-- AUDIO ALERTA DÉBIL (ENLACE RAW AJUSTADO) -->
 <audio id="audioDebil" preload="auto">
-    <source src="https://github.com/sismosmp1/audio-debol/raw/refs/heads/main/sismo%20detectad.mpeg" type="audio/mpeg">
+    <source src="https://raw.githubusercontent.com/sismosmp1/audio-debol/main/sismo%20detectad.mpeg" type="audio/mpeg">
 </audio>
 
 <audio id="audioEmergencia" preload="auto"><source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg"></audio>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
@@ -156,7 +164,7 @@ const db = firebase.database();
 function actualizarReloj(){
     let ahora = new Date();
     let hora = ahora.toLocaleTimeString('es-MX');
-    let fecha = ahora.toLocaleDateString('es-MX', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+    let fecha = Regulatory = ahora.toLocaleDateString('es-MX', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
     document.getElementById("reloj").innerHTML = hora;
     document.getElementById("fecha").innerHTML = fecha;
 }
@@ -173,7 +181,7 @@ function hablar(texto){
     speechSynthesis.speak(voz);
 }
 
-/* FUNCIÓN AUXILIAR HORA DE ACTIVACIÓN (NUEVA) */
+/* FUNCIÓN HORA DE ACTIVACIÓN */
 function registrarHoraActivacion() {
     let ahora = new Date();
     let hora = ahora.toLocaleTimeString('es-MX');
@@ -187,12 +195,12 @@ function registrarHoraActivacion() {
 function mostrarAlerta(data){
     let alerta = document.getElementById("alerta");
     alerta.classList.remove("tipo-emergencia");
-    alerta.classList.add("tipo-fuerte"); // Activa animación de parpadeo rojo
+    alerta.classList.add("tipo-fuerte"); 
     
     document.getElementById("tituloAlerta").innerHTML = data.titulo || "🚨 ALERTA SÍSMICA";
     document.getElementById("mensajeAlerta").innerHTML = data.mensaje || "Sismo detectado";
     
-    registrarHoraActivacion(); // Muestra la estampa de tiempo
+    registrarHoraActivacion(); 
     alerta.classList.add("active");
     
     if(document.documentElement.requestFullscreen){
@@ -234,12 +242,12 @@ function mostrarDebil(data){
 function mostrarEmergencia(data){
     let alerta = document.getElementById("alerta");
     alerta.classList.remove("tipo-fuerte");
-    alerta.classList.add("tipo-emergencia"); // Activa animación de parpadeo naranja
+    alerta.classList.add("tipo-emergencia"); 
     
     document.getElementById("tituloAlerta").innerHTML = data.titulo || "⚠️ EMERGENCIA";
     document.getElementById("mensajeAlerta").innerHTML = data.mensaje || "Emergencia detectada";
     
-    registrarHoraActivacion(); // Muestra la estampa de tiempo
+    registrarHoraActivacion(); 
     alerta.classList.add("active");
     
     if(document.documentElement.requestFullscreen){
@@ -261,7 +269,6 @@ function detenerTodo(){
     let alerta = document.getElementById("alerta");
     alerta.classList.remove("active", "tipo-fuerte", "tipo-emergencia");
     
-    // Ocultar recuadro de tiempo
     document.getElementById("fechaActuacion").style.display = "none";
     document.getElementById("fechaActuacion").innerHTML = "";
     

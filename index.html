@@ -36,13 +36,32 @@ body { background: #050b14; color: white; height: 100vh; overflow: hidden; displ
 .fecha { margin-top: 15px; font-size: 18px; opacity: .8; text-transform: capitalize; }
 .info { position: absolute; bottom: 18px; font-size: 12px; opacity: .5; letter-spacing: 1px; text-align: center;}
 
-/* ALERTA FUERTE */
-.alerta { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #d50000; display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 999999; text-align: center; padding: 25px; animation: flash .5s infinite; }
+/* ALERTA BASE */
+.alerta { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 999999; text-align: center; padding: 25px; }
 .alerta.active { display: flex; }
-@keyframes flash { 50% { background: #ff1744; } }
-.alerta h1 { font-size: 60px; margin-bottom: 20px; }
-.alerta p { font-size: 28px; max-width: 700px; line-height: 1.7; }
-.btnCerrar { margin-top: 35px; padding: 18px 34px; border: none; border-radius: 20px; background: white; color: #d50000; font-size: 20px; font-weight: 900; cursor: pointer; }
+
+/* ANIMACIÓN DE PANTALLA COMPLETA INTERMITENTE (NUEVO) */
+.alerta.tipo-fuerte { animation: flashFuerte 0.6s infinite; }
+@keyframes flashFuerte {
+    0% { background: #d50000; }
+    50% { background: #050b14; }
+    100% { background: #d50000; }
+}
+
+.alerta.tipo-emergencia { animation: flashEmergencia 0.6s infinite; }
+@keyframes flashEmergencia {
+    0% { background: #ff9800; }
+    50% { background: #050b14; }
+    100% { background: #ff9800; }
+}
+
+.alerta h1 { font-size: 60px; margin-bottom: 20px; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+.alerta p { font-size: 28px; max-width: 700px; line-height: 1.7; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+
+/* CONTENEDOR HORA DE ACTIVACIÓN (NUEVO) */
+.fecha-activa { margin-top: 25px; font-size: 22px; background: rgba(0, 0, 0, 0.6); padding: 12px 24px; border-radius: 12px; font-weight: bold; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.2); }
+
+.btnCerrar { margin-top: 35px; padding: 18px 34px; border: none; border-radius: 20px; background: white; color: #111; font-size: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
 /* ALERTA DÉBIL */
 .toast { position: fixed; top: 20px; left: 20px; right: 20px; background: #ffcc00; color: #111; padding: 18px; border-radius: 22px; display: none; z-index: 999999; box-shadow: 0 10px 30px rgba(0,0,0,.3); animation: slide .3s; }
@@ -79,6 +98,7 @@ body { background: #050b14; color: white; height: 100vh; overflow: hidden; displ
 <div class="alerta" id="alerta">
     <h1 id="tituloAlerta">🚨 ALERTA SÍSMICA</h1>
     <p id="mensajeAlerta">Sismo detectado</p>
+    <div id="fechaActuacion" class="fecha-activa" style="display: none;"></div>
     <button class="btnCerrar" onclick="detenerTodo()">CERRAR ALERTA</button>
 </div>
 
@@ -153,12 +173,26 @@ function hablar(texto){
     speechSynthesis.speak(voz);
 }
 
+/* FUNCIÓN AUXILIAR HORA DE ACTIVACIÓN (NUEVA) */
+function registrarHoraActivacion() {
+    let ahora = new Date();
+    let hora = ahora.toLocaleTimeString('es-MX');
+    let fecha = ahora.toLocaleDateString('es-MX', {day: 'numeric', month: 'short', year: 'numeric'});
+    let campoFecha = document.getElementById("fechaActuacion");
+    campoFecha.innerHTML = `Activado: ${hora} | ${fecha}`;
+    campoFecha.style.display = "inline-block";
+}
+
 /* ALERTA FUERTE */
 function mostrarAlerta(data){
     let alerta = document.getElementById("alerta");
-    document.body.style.background = "#d50000";
+    alerta.classList.remove("tipo-emergencia");
+    alerta.classList.add("tipo-fuerte"); // Activa animación de parpadeo rojo
+    
     document.getElementById("tituloAlerta").innerHTML = data.titulo || "🚨 ALERTA SÍSMICA";
     document.getElementById("mensajeAlerta").innerHTML = data.mensaje || "Sismo detectado";
+    
+    registrarHoraActivacion(); // Muestra la estampa de tiempo
     alerta.classList.add("active");
     
     if(document.documentElement.requestFullscreen){
@@ -186,7 +220,7 @@ function mostrarDebil(data){
     
     let audio = document.getElementById("audioDebil");
     audio.currentTime = 0;
-    audio.volume = 1; // Subí el volumen al 100% para que se escuche bien tu nuevo audio
+    audio.volume = 1; 
     audio.play();
     
     hablar(data.mensaje || "Movimiento leve detectado");
@@ -199,10 +233,13 @@ function mostrarDebil(data){
 /* EMERGENCIA */
 function mostrarEmergencia(data){
     let alerta = document.getElementById("alerta");
-    alerta.style.background = "#ff9800";
-    document.body.style.background = "#ff9800";
+    alerta.classList.remove("tipo-fuerte");
+    alerta.classList.add("tipo-emergencia"); // Activa animación de parpadeo naranja
+    
     document.getElementById("tituloAlerta").innerHTML = data.titulo || "⚠️ EMERGENCIA";
     document.getElementById("mensajeAlerta").innerHTML = data.mensaje || "Emergencia detectada";
+    
+    registrarHoraActivacion(); // Muestra la estampa de tiempo
     alerta.classList.add("active");
     
     if(document.documentElement.requestFullscreen){
@@ -221,8 +258,12 @@ function mostrarEmergencia(data){
 
 /* DETENER */
 function detenerTodo(){
-    document.getElementById("alerta").classList.remove("active");
-    document.body.style.background = "#050b14";
+    let alerta = document.getElementById("alerta");
+    alerta.classList.remove("active", "tipo-fuerte", "tipo-emergencia");
+    
+    // Ocultar recuadro de tiempo
+    document.getElementById("fechaActuacion").style.display = "none";
+    document.getElementById("fechaActuacion").innerHTML = "";
     
     document.getElementById("audioFuerte").pause();
     document.getElementById("audioDebil").pause();
